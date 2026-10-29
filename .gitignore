@@ -20,9 +20,11 @@ backend/.env.local
 backend/.env.*.local
 *.local
 
-# Keep the safe placeholder templates
+# Keep the safe placeholder templates and the production public config
 !.env.example
 !backend/.env.example
+# .env.production only contains the public Render URL — no secrets — safe to commit
+!.env.production
 
 # --- Logs ---
 logs/

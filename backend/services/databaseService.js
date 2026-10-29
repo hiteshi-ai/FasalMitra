@@ -384,6 +384,25 @@ export const databaseService = {
       try {
         const supabase = getSupabase();
         const dbRow = mapAnalysisToDb(item);
+
+        // If a farmerId is supplied, verify it exists first to avoid a FK constraint error.
+        // A temporary/local farmer ID (e.g. freshly registered on this session) may not
+        // exist in farmer_profiles yet if the browser cached the ID before the DB write
+        // completed, or if the farmer registered while Supabase was momentarily unavailable.
+        // In those cases we store the analysis with farmer_id = null so the row is not lost.
+        if (dbRow.farmer_id) {
+          const { data: profileRow, error: profileErr } = await supabase
+            .from('farmer_profiles')
+            .select('id')
+            .eq('id', dbRow.farmer_id)
+            .maybeSingle();
+          if (profileErr || !profileRow) {
+            console.warn(`[Supabase saveAnalysis] farmerId "${dbRow.farmer_id}" not found in farmer_profiles — storing with farmer_id = null to avoid FK violation.`);
+            dbRow.farmer_id = null;
+            item.farmerId = null;
+          }
+        }
+
         const { data, error } = await supabase
           .from('farmer_analyses')
           .upsert(dbRow, { onConflict: 'id' })

@@ -24,6 +24,9 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 console.log('[FasalMitra] Environment loaded.');
 console.log('[FasalMitra] SUPABASE_URL set:', Boolean(process.env.SUPABASE_URL));
 console.log('[FasalMitra] SUPABASE_SERVICE_ROLE_KEY set:', Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY));
+console.log('[FasalMitra] GEMINI_API_KEY set:', Boolean(process.env.GEMINI_API_KEY));
+console.log('[FasalMitra] GEMINI_MODEL:', process.env.GEMINI_MODEL || 'gemini-3.5-flash (default)');
+console.log('[FasalMitra] FRONTEND_URL:', process.env.FRONTEND_URL || 'http://localhost:5173 (default)');
 
 // Now dynamically import server so all its transitive imports see the env vars
 await import('./server.js');

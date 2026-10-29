@@ -6,6 +6,8 @@ import { GoogleGenAI } from '@google/genai';
  * ============================================================================
  * Model identifier constant - easily configurable for future model releases.
  */
+// Primary model: gemini-3.5-flash (stable, broadly available).
+// Set GEMINI_MODEL in your Render environment variables to override.
 export const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
 
 /**
@@ -27,12 +29,15 @@ function getGeminiClient() {
 /**
  * Executes a Gemini API call with safe retry and active model fallback for 503 / 404 errors.
  */
-async function generateContentWithRetry(ai, requestOptions, maxRetries = 2, delayMs = 1000) {
+async function generateContentWithRetry(ai, requestOptions, maxRetries = 2, delayMs = 1500) {
+  // Ordered candidate list: most reliable first, latest model last.
+  // gemini-3.5-flash is broadly available and fast.
+  // gemini-3.8-flash is newer but can be unavailable under high demand.
   const candidateModels = [
     requestOptions.model || GEMINI_MODEL,
     'gemini-3.5-flash',
-    'gemini-flash-latest',
-    'gemini-3.8-flash'
+    'gemini-3.8-flash',
+    'gemini-flash-latest'
   ].filter((m, idx, arr) => Boolean(m) && arr.indexOf(m) === idx);
 
   let lastError = null;

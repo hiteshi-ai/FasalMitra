@@ -15,18 +15,30 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const FRONTEND_ORIGIN = process.env.FRONTEND_URL || 'http://localhost:5173';
 
+// Allowed origins: configured env var + Vercel production domain + common local ports
+const ALLOWED_ORIGINS = new Set([
+  FRONTEND_ORIGIN,
+  'https://fasal-mitra-98et.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:4173',
+  'http://localhost:3000'
+]);
+
 // CORS Middleware with PATCH support and flexible local development origin handling
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow non-browser requests (e.g. curl, test scripts) or local dev origins
+    // Allow non-browser requests (e.g. curl, test scripts) or whitelisted origins
     if (!origin) return callback(null, true);
     if (
-      origin === FRONTEND_ORIGIN ||
-      /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+      ALLOWED_ORIGINS.has(origin) ||
+      /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin) ||
+      // Allow any Vercel preview deployment of this project
+      /^https:\/\/fasal-mitra(-[a-z0-9]+)*\.vercel\.app$/.test(origin)
     ) {
       return callback(null, true);
     }
-    return callback(null, true);
+    console.warn('[CORS] Blocked origin:', origin);
+    return callback(new Error(`CORS: Origin "${origin}" is not allowed.`));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
